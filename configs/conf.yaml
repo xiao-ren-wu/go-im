@@ -1,0 +1,5 @@
+loggo:
+  log_file_prefix: "logs/go-im"
+  rotation_size: 10
+  rotation_time: 240
+  max_age: 240
