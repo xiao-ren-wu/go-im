@@ -24,13 +24,6 @@ type Conn interface {
 	Flush() error
 }
 
-type ChannelMap interface {
-	Add(Channel)
-	Remove(id string)
-	Get(id string) (Channel, bool)
-	All() []Channel
-}
-
 type MessageListener interface {
 	ID() string
 	Push([]byte) error
