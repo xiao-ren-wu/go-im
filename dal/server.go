@@ -35,8 +35,7 @@ type Conn interface {
 }
 
 type MessageListener interface {
-	ID() string
-	Push([]byte) error
+	Receive(Agent, []byte)
 }
 
 type Frame interface {
@@ -44,4 +43,25 @@ type Frame interface {
 	GetOpCode() constants.OpCode
 	SetPayload(raw []byte)
 	GetPayload() []byte
+}
+
+type ChannelMap interface {
+	Add(Channel)
+	Remove(id string)
+	Get(id string) (Channel, bool)
+	All() []Channel
+}
+
+type Agent interface {
+	ID() string
+	Push([]byte) error
+}
+
+type Channel interface {
+	Conn
+	Agent
+	Close() error
+	ReadLoop(MessageListener) error
+	SetReadWait(time.Duration)
+	SetWriteWait(time.Duration)
 }
