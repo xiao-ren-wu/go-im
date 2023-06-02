@@ -14,7 +14,8 @@ const (
 )
 
 const (
-	DefaultLoginWait = 10 * time.Second
-	DefauReadWait    = time.Second
-	DefaultWriteWait = time.Second
+	DefaultReadWait  = time.Minute * 3
+	DefaultWriteWait = time.Second * 10
+	DefaultLoginWait = time.Second * 10
+	DefaultHeartbeat = time.Second * 55
 )

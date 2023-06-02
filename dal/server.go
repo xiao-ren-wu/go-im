@@ -2,7 +2,9 @@ package dal
 
 import (
 	"context"
+	"github.com/segmentio/ksuid"
 	"net"
+	"sync"
 	"time"
 
 	"github.com/xiao-ren-wu/go-im/dal/constants"
@@ -20,11 +22,19 @@ type Server interface {
 }
 
 type Acceptor interface {
-	Accept(Conn, time.Duration) (string, error)
+	Accept(Conn, time.Duration) (string, Meta, error)
 }
+type Meta map[string]string
 
 type StateListener interface {
 	Disconnect(string) error
+}
+type DefaultAcceptor struct {
+}
+
+// Accept DefaultAcceptor
+func (a *DefaultAcceptor) Accept(conn Conn, timeout time.Duration) (string, Meta, error) {
+	return ksuid.New().String(), Meta{}, nil
 }
 
 type Conn interface {
@@ -52,6 +62,38 @@ type ChannelMap interface {
 	All() []Channel
 }
 
+type ChannelMapImpl struct {
+	channels *sync.Map
+}
+
+func (c *ChannelMapImpl) Add(channel Channel) {
+	c.channels.Store(channel.ID(), channel)
+}
+
+func (c *ChannelMapImpl) Remove(id string) {
+	c.channels.Delete(id)
+}
+
+func (c *ChannelMapImpl) Get(id string) (Channel, bool) {
+	value, ok := c.channels.Load(id)
+	if ok {
+		return value.(Channel), ok
+	}
+	return nil, false
+}
+
+func (c *ChannelMapImpl) All() (resList []Channel) {
+	c.channels.Range(func(key, value any) bool {
+		resList = append(resList, value.(Channel))
+		return true
+	})
+	return
+}
+
+func NewChannelMap(size int) ChannelMap {
+	return &ChannelMapImpl{channels: new(sync.Map)}
+}
+
 type Agent interface {
 	ID() string
 	Push([]byte) error
@@ -61,7 +103,7 @@ type Channel interface {
 	Conn
 	Agent
 	Close() error
-	ReadLoop(MessageListener) error
+	Readloop(MessageListener) error
 	SetReadWait(time.Duration)
 	SetWriteWait(time.Duration)
 }
